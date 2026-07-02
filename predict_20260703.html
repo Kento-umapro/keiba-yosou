@@ -61,8 +61,10 @@
  <div class="modenote">単勝＝1着になる確率／複勝＝3着以内（7頭以下は2着以内）に入る確率。切替で表・イチ押し・並び順・チェックの券種がすべて切り替わります（チェックは券種ごとに別記録）。</div>
  <div class="dtabs" id="dtabs"><a class="dtab" href="predict_20260701.html">07/01</a><a class="dtab" href="predict_20260702.html">07/02</a><a class="dtab on" href="predict_20260703.html">07/03</a></div>
  <div class="roi" id="roi">
-   <div class="card"><div class="l">この日の回収率（単勝・複勝 1,000円/点）</div><div class="v" id="roiDay">—</div><div class="s" id="roiDayS">結果待ち</div></div>
-   <div class="card"><div class="l">通算 回収率</div><div class="v" id="roiAll">—</div><div class="s" id="roiAllS">全日程の確定分</div></div>
+   <div class="card"><div class="l">この日 単勝（1,000円/点）</div><div class="v" id="roiDayT">—</div><div class="s" id="roiDayTS">結果待ち</div></div>
+   <div class="card"><div class="l">この日 複勝（1,000円/点）</div><div class="v" id="roiDayF">—</div><div class="s" id="roiDayFS">結果待ち</div></div>
+   <div class="card"><div class="l">通算 単勝</div><div class="v" id="roiAllT">—</div><div class="s" id="roiAllTS">全日程の確定分</div></div>
+   <div class="card"><div class="l">通算 複勝</div><div class="v" id="roiAllF">—</div><div class="s" id="roiAllFS">全日程の確定分</div></div>
  </div>
  <div class="disc">⚠️ この勝率は<b>統計的な推定であって“当たる保証”ではありません</b>。蓄積287Rの検証で単純戦略に恒常エッジは無く、<b>馬券の的中・利益を保証しません</b>。
    判断・購入・責任はご本人。私は<b>買い目表まで（購入はしません）</b>。下の「購入」チェック＝あなたの控え、実際の投票はご自身の口座で。血統は参考表示のみ（勝率へ加重せず・順次モデル化予定）。枠順傾向は各競馬場の蓄積データから場別に反映（データが十分な場のみ）。</div>
@@ -167,35 +169,41 @@
    return resCache[dt];
  }
  function roiFrom(keys,res){
-   let inv=0,ret=0,hit=0,pend=0;
-   keys.forEach(k=>{const a=k.split('|'),j=a[0],r=a[1],u=a[2],t=a[3]||'tan';
+   const z=()=>({inv:0,ret:0,hit:0,pend:0,settled:0});
+   const out={tan:z(),fuku:z()};
+   keys.forEach(k=>{const a=k.split('|'),j=a[0],r=a[1],u=a[2],t=(a[3]==='fuku')?'fuku':'tan';
+     const o=out[t];
      const cell=res&&res[j]&&res[j][r];
-     if(!cell){pend++;return;}
+     if(!cell){o.pend++;return;}
      if(t==='fuku'){
-       if(!cell.fuku){pend++;return;}      // 旧結果JSON(複勝なし)は結果待ち扱い
-       inv+=STAKE; const y=cell.fuku[u];
-       if(y){ret+=Math.round(y*STAKE/100); hit++;}
+       if(!cell.fuku){o.pend++;return;}      // 旧結果JSON(複勝なし)は結果待ち扱い
+       o.inv+=STAKE; o.settled++; const y=cell.fuku[u];
+       if(y){o.ret+=Math.round(y*STAKE/100); o.hit++;}
      }else{
-       inv+=STAKE; if(+u===+cell.win){ret+=Math.round(cell.tansho*STAKE/100); hit++;}
+       o.inv+=STAKE; o.settled++;
+       if(+u===+cell.win){o.ret+=Math.round(cell.tansho*STAKE/100); o.hit++;}
      }
    });
-   return {inv,ret,hit,pend,settled:keys.length-pend};
+   return out;
+ }
+ function paintROI(idV,idS,o,emptyS){
+   const el=document.getElementById(idV), es=document.getElementById(idS);
+   if(o.inv>0){const v=o.ret/o.inv*100; el.textContent=v.toFixed(1)+'%';
+     el.style.color=v>=100?'#0a7d4d':(v<80?'#c0392b':'#8a5a00');
+     es.textContent=`投資¥${o.inv.toLocaleString()} / 払戻¥${o.ret.toLocaleString()}・的中${o.hit}/${o.settled}`+(o.pend?`・結果待ち${o.pend}`:'');}
+   else{el.textContent='—'; el.style.color='';
+     es.textContent=o.pend?`結果待ち（${o.pend}点）`:emptyS;}
  }
  async function computeROI(){
    const rDay=await results(DATE);
    const day=roiFrom([...picksSet],rDay);
-   const de=document.getElementById('roiDay'),ds=document.getElementById('roiDayS');
-   if(day.inv>0){const v=day.ret/day.inv*100; de.textContent=v.toFixed(1)+'%';
-     de.style.color=v>=100?'#0a7d4d':(v<80?'#c0392b':'#8a5a00');
-     ds.textContent=`投資¥${day.inv.toLocaleString()} / 払戻¥${day.ret.toLocaleString()}・的中${day.hit}/${day.settled}`+(day.pend?`・結果待ち${day.pend}`:'');}
-   else{de.textContent='—'; ds.textContent=day.pend?`結果待ち（${day.pend}点）`:'チェックなし';}
-   let inv=0,ret=0,hit=0,tot=0;
-   for(const dt of DATES){const res=await results(dt); const rr=roiFrom(loadKeys(dt),res); inv+=rr.inv;ret+=rr.ret;hit+=rr.hit;tot+=rr.settled;}
-   const ae=document.getElementById('roiAll'),as=document.getElementById('roiAllS');
-   if(inv>0){const v=ret/inv*100; ae.textContent=v.toFixed(1)+'%';
-     ae.style.color=v>=100?'#0a7d4d':(v<80?'#c0392b':'#8a5a00');
-     as.textContent=`投資¥${inv.toLocaleString()} / 払戻¥${ret.toLocaleString()}・的中${hit}/${tot}`;}
-   else{ae.textContent='—'; as.textContent='確定結果がまだありません';}
+   paintROI('roiDayT','roiDayTS',day.tan,'チェックなし');
+   paintROI('roiDayF','roiDayFS',day.fuku,'チェックなし');
+   const tot={tan:{inv:0,ret:0,hit:0,pend:0,settled:0},fuku:{inv:0,ret:0,hit:0,pend:0,settled:0}};
+   for(const dt of DATES){const res=await results(dt); const rr=roiFrom(loadKeys(dt),res);
+     for(const t of ['tan','fuku']) for(const k of ['inv','ret','hit','pend','settled']) tot[t][k]+=rr[t][k];}
+   paintROI('roiAllT','roiAllTS',tot.tan,'確定結果がまだありません');
+   paintROI('roiAllF','roiAllFS',tot.fuku,'確定結果がまだありません');
  }
  computeROI();
 </script></body></html>
