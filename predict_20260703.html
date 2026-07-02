@@ -37,6 +37,7 @@
  .chk.c1{background:#0a7d4d;color:#fff} .chk.c2{background:#1f6fd0;color:#fff} .chk.c3{background:#e7dcc0;color:#8a6d3b}
  tr.won{background:#eafaf1} tr.won td{font-weight:700}
  .donetag{background:#0a7d4d;color:#fff;border-radius:6px;padding:1px 7px;font-size:11px;margin-left:6px}
+ .trend{background:#eef6ff;border:1px solid #cfe3f7;color:#1d4f82;border-radius:12px;padding:10px 14px;margin:14px 0 0;font-size:12.5px;line-height:1.8}
  .paybox{margin-top:8px;background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:8px 12px}
  .pbt{font-size:11.5px;font-weight:700;color:var(--sub);margin-bottom:4px}
  .ptab{font-size:12px} .ptab td{padding:3px 8px;border-bottom:1px dashed #edf0f4;text-align:left}
@@ -66,6 +67,7 @@
    ・<b>総合勝率</b>＝<b>市場65%＋データ35%</b>で合成した推定勝率（バックテストで市場の方が的中に効くため市場寄り）。並び順・イチ押しはこの総合順。<br>
    ・<b>データ</b>＝オッズを使わない自前予想（近走フォーム×場別の枠順傾向をレース内で正規化）。<b>市場</b>＝発走前オッズを割り引いた市場の推定勝率（＝みんなの予想）。前日等オッズ未発表なら市場は「—」で総合＝データ。<br>
    ・<b>複勝モード</b>＝各値が「3着以内（7頭以下は2着以内）に入る確率」になります。データはHarville式（単勝勝率から上位着内確率を導く標準式）、市場は<b>複勝オッズ（下限-上限の中央値）</b>由来。複勝オッズ未発表時は単勝市場から同式で近似します。<br>
+   ・<b>結果から学習</b>＝当日4R以上確定すると、勝ち馬が「市場1位/データ1位/どの枠」だったかを集計し、<b>残レースの市場比重(50〜80%)と枠補正(×0.88〜1.12)を自動調整</b>。補正した日は各競馬場タブ上部の青いボックスに内容を明記します（更新は自動化の実行タイミングごと）。<br>
    ・<b>妙味</b>＝<b>データ−市場(pt)</b>。<span class="pos">＋</span>は「自前予想が市場より高評価＝妙味（過小人気の可能性）」、<span class="neg">−</span>は市場が買っているほど自前は評価していない、の意味。<br>
    ・<b>2位との差</b>＝そのレースの<b>1位馬と2位馬の総合勝率の差(pt)</b>。<u>大きいほど本命が抜けている＝自信度が高い</u>、+0ptは混戦。 <b>直近5走</b>＝新しい順の着順（<span class="fin f1">1</span>1着 <span class="fin f2">2</span>2着 <span class="fin f3">3</span>3着 灰=着外）。
  </div>
